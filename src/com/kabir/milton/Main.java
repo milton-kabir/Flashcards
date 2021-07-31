@@ -1,25 +1,91 @@
 //package flashcards;
-package com.kabir.milton;
+ package com.kabir.milton;
 
 import java.io.*;
 import java.util.*;
 
 
 public class Main {
+    private static Scanner sc= new Scanner(System.in);
+    public static HashMap<String, String> myMap = new HashMap<>();
+    public static Map<String, Integer> stats = new TreeMap<>();
+    public static ArrayList<String> logs = new ArrayList<>();
+    public static void addToLogAndPrint(String input) {
+        System.out.println(input);
+        logs.add(input);
+    }
+    public static void addToLog(String input) {
+        logs.add(input);
+    }
 
     public static void main(String[] args) {
         // write your code here
-        Scanner sc = new Scanner(System.in);
-        HashMap<String, String> myMap = new HashMap<>();
+
         while (true){
-            System.out.println("Input the action (add, remove, import, export, ask, exit):");
+            System.out.println("Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):");
             String ck= sc.nextLine();
             String st,ts;
             if(ck.equals("exit")){
                 System.out.println("Bye bye!");
                 break;
             }
-            if(ck.equals("add")){
+            if(ck.equals("log")){
+                addToLogAndPrint("File name:");
+                String logFile = sc.nextLine();
+                logs.add(logFile);
+
+                File file = new File(logFile);
+                try (PrintWriter printWriter = new PrintWriter(file)) {
+                    for (String entry : logs) {
+                        printWriter.println(entry);
+                    }
+                } catch (IOException e) {
+                    addToLogAndPrint("ERROR: An exception occurs " + e.getMessage());
+                }
+                addToLogAndPrint("The log has been saved.");
+            }
+            else if(ck.equals("hardest card")){
+                int maxNumberOfErrors = 0;
+                int cardsWithWrongAnswers = 0;
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append("The hardest card is ");
+                for (Map.Entry<String, Integer> entry : stats.entrySet()) {
+                    if (entry.getValue() > 0) {
+                        maxNumberOfErrors = maxNumberOfErrors < entry.getValue() ? entry.getValue() : maxNumberOfErrors;
+                    }
+                }
+                for (Map.Entry<String, Integer> entry : stats.entrySet()) {
+                    if (entry.getValue() > 0) {
+                        if (entry.getValue() == maxNumberOfErrors) {
+                            stringBuilder.append('\u0022').append(entry.getKey()).append('\u0022').append(",");
+                            cardsWithWrongAnswers++;
+                        }
+                    }
+                }
+                if (cardsWithWrongAnswers > 1) {
+                    stringBuilder.insert(16,"s").delete(18, 20).insert(18, "are");
+                } else {
+                    stringBuilder.deleteCharAt(stringBuilder.length() - 1).append(".");
+                }
+                if (cardsWithWrongAnswers == 1 && maxNumberOfErrors > 0) {
+                    stringBuilder.deleteCharAt(stringBuilder.length() - 1).append(". You have ")
+                            .append(maxNumberOfErrors).append(" errors answering it.");
+                }
+                if (maxNumberOfErrors > 0) {
+                    stringBuilder.deleteCharAt(stringBuilder.length() - 1).append(". You have ")
+                            .append(maxNumberOfErrors).append(" errors answering them.");
+                } else {
+                    stringBuilder.delete(0, stringBuilder.length());
+                    stringBuilder.append("There are no cards with errors.");
+                }
+                addToLogAndPrint(stringBuilder.toString());
+                stringBuilder.delete(0,stringBuilder.length());
+            }
+            else if(ck.equals("reset stats")){
+                stats.replaceAll((k, v) -> 0);
+                addToLogAndPrint("Card statistics have been reset.");
+            }
+            else if(ck.equals("add")){
                 System.out.println("The card:");
                 st = sc.nextLine();
                 if (myMap.containsKey(st)) {
