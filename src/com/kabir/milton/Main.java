@@ -3,13 +3,52 @@
 
 import java.io.*;
 import java.util.*;
+abstract class ArgParser {
+    protected static int getArgIndex(String arg, String... args) {
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals(arg)) {
+                return i + 1;
+            }
+        }
+
+        return -1;
+    }
+}
+
+class DefaultArgParser extends ArgParser {
+    private String[] args;
+
+    DefaultArgParser(String[] args) {
+        this.args = args;
+    }
 
 
+    String getImport(){
+        return getArg("import");
+    }
+
+    String getExport() { return getArg("export"); }
+
+    private String getArg(String arg) {
+        int index = getArgIndex("-" + arg, args);
+
+        if (index > args.length - 1) {
+            throw new IllegalArgumentException("Argument \"" + arg + "\" is invalid.");
+        }
+
+        if (index == -1) {
+            throw new NoSuchElementException("Argument \"" + arg + "\" was not found.");
+        }
+
+        return args[index];
+    }
+}
 public class Main {
     private static Scanner sc= new Scanner(System.in);
     public static HashMap<String, String> myMap = new HashMap<>();
     public static Map<String, Integer> stats = new TreeMap<>();
     public static ArrayList<String> logs = new ArrayList<>();
+    private static String exportTo = null;
     public static void addToLogAndPrint(String input) {
         System.out.println(input);
         logs.add(input);
@@ -20,6 +59,18 @@ public class Main {
 
     public static void main(String[] args) {
         // write your code here
+        String importFrom = null;
+
+        DefaultArgParser argParser = new DefaultArgParser(args);
+
+        try {
+            importFrom = argParser.getImport();
+        } catch (Exception ignored){ }
+
+        try {
+            exportTo = argParser.getExport();
+        } catch (Exception ignored){ }
+
 
         while (true){
             System.out.println("Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):");
